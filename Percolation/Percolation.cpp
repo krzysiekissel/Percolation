@@ -15,14 +15,16 @@ struct Params {
     float dp;
 };
 enum NN {
+    TOPLEFT,
     TOP,
     LEFT,
     RIGHT,
-    BOTTOM
+    BOTTOM,
+    BOTTOMRIGHT
 };
 struct Node {
     int val;
-    Node* nn[4];
+    Node* nn[6];
 };
 Params getParams(string inputFile) {
     Params result = Params();
@@ -92,7 +94,7 @@ map<int,int> findClusters(Node* a, int L) {
     map<int, int> clusters;
     for (int i = 0; i < LL; i++) {
         if (a[i].val) {
-            if (!a[i].nn[NN::TOP]->val && !a[i].nn[NN::LEFT]->val) {
+            if (!a[i].nn[NN::TOPLEFT]->val && !a[i].nn[NN::TOP]->val && !a[i].nn[NN::LEFT]->val) {
                 k++;
                 a[i].val = k;
                 clusters[k] = 1;
@@ -107,7 +109,9 @@ map<int,int> findClusters(Node* a, int L) {
                     a[i].val = a[i].nn[NN::LEFT]->val;
                     clusters[a[i].val]++;
                 }
+                continue;
             }
+            
             if (a[i].nn[NN::TOP]->val && a[i].nn[NN::LEFT]->val) {
                 if (a[i].nn[NN::TOP]->val == a[i].nn[NN::LEFT]->val) {
                     a[i].val = a[i].nn[NN::LEFT]->val;
@@ -130,6 +134,10 @@ map<int,int> findClusters(Node* a, int L) {
                     unionClusters(a, L, sm, lg);
                     
                 }
+            }
+            if (a[i].nn[NN::TOPLEFT]->val) {
+                a[i].val = a[i].nn[NN::TOPLEFT]->val;
+                clusters[a[i].val]++;
             }
         }
     }
@@ -154,6 +162,9 @@ bool checkPath(Node* a,int L) {
         for (int i = 0; i < LL; i++) {
             if (a[i].val == burnLevel) {
                 burnFlag = true;
+                if (a[i].nn[NN::TOPLEFT]->val == 1) {
+                    a[i].nn[NN::TOPLEFT]->val = burnLevel + 1;
+                }
                 if (a[i].nn[NN::TOP]->val==1) {
                     a[i].nn[NN::TOP]->val = burnLevel + 1;
                 }
@@ -165,6 +176,12 @@ bool checkPath(Node* a,int L) {
                 }
                 if (a[i].nn[NN::BOTTOM]->val==1) {
                     a[i].nn[NN::BOTTOM]->val = burnLevel + 1;
+                    if (i >= LL - (2 * L)) {
+                        goto stop;
+                    }
+                }
+                if (a[i].nn[NN::BOTTOMRIGHT]->val == 1) {
+                    a[i].nn[NN::BOTTOMRIGHT]->val = burnLevel + 1;
                     if (i >= LL - (2 * L)) {
                         goto stop;
                     }
@@ -205,7 +222,16 @@ int main(int argc, char **argv)
     boundryNode.val = 0;
     //nn init
     for (int i = 0; i < LL; i++) {
-        //n0 i-L
+        //n0 i-L-1
+        if (i>= L&& i % L != 0) {
+            a[i].nn[NN::TOPLEFT] = &a[i - L-1];
+            b[i].nn[NN::TOPLEFT] = &b[i - L-1];
+        }
+        else {
+            a[i].nn[NN::TOPLEFT] = &boundryNode;
+            b[i].nn[NN::TOPLEFT] = &boundryNode;
+        }
+        //n1 i-L
         if (i >= L) {
             a[i].nn[NN::TOP] = &a[i - L];
             b[i].nn[NN::TOP] = &b[i - L];
@@ -214,7 +240,7 @@ int main(int argc, char **argv)
             a[i].nn[NN::TOP] = &boundryNode;
             b[i].nn[NN::TOP] = &boundryNode;
         }
-        //n1 i-1
+        //n2 i-1
         if (i % L != 0) {
             a[i].nn[NN::LEFT] = &a[i - 1];
             b[i].nn[NN::LEFT] = &b[i - 1];
@@ -223,7 +249,7 @@ int main(int argc, char **argv)
             a[i].nn[NN::LEFT] = &boundryNode;
             b[i].nn[NN::LEFT] = &boundryNode;
         }
-        //n2 i+1
+        //n3 i+1
         if (i % L != L-1) {
             a[i].nn[NN::RIGHT] = &a[i + 1];
             b[i].nn[NN::RIGHT] = &b[i + 1];
@@ -232,7 +258,7 @@ int main(int argc, char **argv)
             a[i].nn[NN::RIGHT] = &boundryNode;
             b[i].nn[NN::RIGHT] = &boundryNode;
         }
-        //n3 i+L
+        //n4 i+L
         if (i < LL-L) {
             a[i].nn[NN::BOTTOM] = &a[i + L];
             b[i].nn[NN::BOTTOM] = &b[i + L];
@@ -240,6 +266,15 @@ int main(int argc, char **argv)
         else {
             a[i].nn[NN::BOTTOM] = &boundryNode;
             b[i].nn[NN::BOTTOM] = &boundryNode;
+        }
+        //n5 i+L+1
+        if (i < LL - L&& i % L != L - 1) {
+            a[i].nn[NN::BOTTOMRIGHT] = &a[i + L+1];
+            b[i].nn[NN::BOTTOMRIGHT] = &b[i + L+1];
+        }
+        else {
+            a[i].nn[NN::BOTTOMRIGHT] = &boundryNode;
+            b[i].nn[NN::BOTTOMRIGHT] = &boundryNode;
         }
     }
 
@@ -277,8 +312,8 @@ int main(int argc, char **argv)
                     b[i].val = 0;
                 }
             }
-            //printConfig(a, L);
-            auto clusters = findClusters(a, L);
+            printConfig(b, L);
+            /*auto clusters = findClusters(a, L);
             int max = 0;
             for (auto const& x : clusters) {
                 clustersDistibution[x.second] += 1;
@@ -286,12 +321,12 @@ int main(int argc, char **argv)
                     max = x.second;
                 }
             }
-            s += max;
+            s += max;*/
             bool path = checkPath(b, L);
             if (path) {
                 pflow += 1;
             }
-            //printConfig(a, L);
+            printConfig(b, L);
 
         }
         for (auto const& x : clustersDistibution) {
