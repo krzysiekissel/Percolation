@@ -4,6 +4,7 @@
 #include <random>
 #include <chrono>
 #include <map>
+#include <ctime>
 using namespace std;
 
 struct Params {
@@ -73,7 +74,7 @@ void unionClusters(int** a, int L, int sm, int lg) {
         }
     }
 }
-int clusters(int** a, int L) {
+map<int,int> findClusters(int** a, int L) {
     int k = 2;
     map<int, int> clusters;
     for (int row = 0; row < L; row++) {
@@ -132,17 +133,7 @@ int clusters(int** a, int L) {
             }
         }
     }
-    int maxMass = 0;
-    int lgCluster = 0;
-    for (auto const& x : clusters)
-    {
-        if (x.second > maxMass) {
-            lgCluster = x.first;
-            maxMass = x.second;
-        }
-    }
-
-    return maxMass;
+    return clusters;
 
 
 }
@@ -203,7 +194,15 @@ bool checkPath(int** a,int L) {
     return true;
 }
 
-
+int max(map<int, int> clusters) {
+    int max = 0;
+    for (auto const& x : clusters) {
+        if (x.second > max) {
+            max = x.second;
+        }
+    }
+    return max;
+}
 int main(int argc, char **argv)
 {
     auto params = getParams(string(argv[1]));
@@ -226,15 +225,22 @@ int main(int argc, char **argv)
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
     std::uniform_real_distribution<float> distribution(0.0, 1.0);
+    string fileName = "Ave_L_" + to_string(L) + "_T_" + to_string(T) + "_tmstmp_" + to_string(time(nullptr)) + ".txt";
+    fstream mainOutput;
+    mainOutput.open(fileName,ios::out);
+    if (!mainOutput.is_open()) {
+        cout << "file error" << endl;
+        return -1;
+    }
 
     //p loop
     float p = p0;
-    
     float epsilon = 0.0003;
     while (p <= (pk+epsilon)) {
         //mc loop
         float pflow = 0;
         float s = 0;
+        map<int, float> clustersDistibution;
 
         for (int mcs = 0; mcs < T; mcs++) {
             //lattice loop
@@ -252,19 +258,39 @@ int main(int argc, char **argv)
                 }
             }
             //printConfig(a, L);
-            int maxCluster = clusters(a, L);
-            s += maxCluster;
+            auto clusters = findClusters(a, L);
+            int max = 0;
+            for (auto const& x : clusters) {
+                clustersDistibution[x.second] += 1;
+                if (x.second > max) {
+                    max = x.second;
+                }
+            }
+            s += max;
             bool path = checkPath(b, L);
             if (path) {
                 pflow += 1;
             }
 
         }
+        for (auto const& x : clustersDistibution) {
+            clustersDistibution[x.first] /= (float)T;
+        }
         pflow = pflow / T;
         s = s / T;
-        cout << p << "\t"<<pflow<<"\t"<< s << endl;
+        string fileName = "Dist_p_" + to_string(p) + "_L_" + to_string(L)+"_T_"+to_string(T)+ "_tmstmp_" + to_string(time(nullptr)) + ".txt";
+        fstream clustersOutput;
+        clustersOutput.open(fileName, ios::out);
+        for (auto const& x : clustersDistibution) {
+            cout << x.first << "\t" << x.second << endl;
+            clustersOutput << x.first << "\t" << x.second << endl;
+        }
+        clustersOutput.close();
+        cout << p << "\t" << pflow << "\t" << s << endl;
+        mainOutput << p << "\t"<<pflow<<"\t"<< s << endl;
         p += dp;
     }
+    mainOutput.close();
 
     for (int i = 0; i < L; i++) {
         delete[] a[i];
