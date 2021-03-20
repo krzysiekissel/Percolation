@@ -100,6 +100,11 @@ map<int,int> findClusters(Node* a, int L) {
                 clusters[k] = 1;
                 continue;
             }
+            if (a[i].nn[NN::TOPLEFT]->val) {
+                a[i].val = a[i].nn[NN::TOPLEFT]->val;
+                clusters[a[i].val]++;
+                continue;
+            }
             if ((a[i].nn[NN::TOP]->val && !a[i].nn[NN::LEFT]->val) || (!a[i].nn[NN::TOP]->val && a[i].nn[NN::LEFT]->val)) {
                 if (a[i].nn[NN::TOP]->val) {
                     a[i].val = a[i].nn[NN::TOP]->val;
@@ -135,10 +140,7 @@ map<int,int> findClusters(Node* a, int L) {
                     
                 }
             }
-            if (a[i].nn[NN::TOPLEFT]->val) {
-                a[i].val = a[i].nn[NN::TOPLEFT]->val;
-                clusters[a[i].val]++;
-            }
+            
         }
     }
     return clusters;
@@ -312,8 +314,8 @@ int main(int argc, char **argv)
                     b[i].val = 0;
                 }
             }
-            printConfig(b, L);
-            /*auto clusters = findClusters(a, L);
+            //printConfig(a, L);
+            auto clusters = findClusters(a, L);
             int max = 0;
             for (auto const& x : clusters) {
                 clustersDistibution[x.second] += 1;
@@ -321,12 +323,12 @@ int main(int argc, char **argv)
                     max = x.second;
                 }
             }
-            s += max;*/
+            s += max;
             bool path = checkPath(b, L);
             if (path) {
                 pflow += 1;
             }
-            printConfig(b, L);
+            //printConfig(a, L);
 
         }
         for (auto const& x : clustersDistibution) {
