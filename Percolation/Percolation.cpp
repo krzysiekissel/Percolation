@@ -15,12 +15,12 @@ struct Params {
     float dp;
 };
 enum NN {
-    TOPLEFT,
-    TOP,
-    LEFT,
-    RIGHT,
-    BOTTOM,
-    BOTTOMRIGHT
+    _X,
+    X,
+    _Y,
+    Y,
+    _Z,
+    Z
 };
 struct Node {
     int val;
@@ -80,63 +80,83 @@ bool isOccupied(int** a,int L,int row,int col) {
     }
     return a[row][col] != 0;
 }
-void unionClusters(Node* a, int L, int sm, int lg) {
-    int LL = L * L;
-    for (int i = 0; i < LL; i++) {
-        if (a[i].val == sm) {
+void unionClusters(Node* a, int L, int sm1,int sm2, int lg) {
+    int L3 = L * L*L;
+    for (int i = 0; i < L3; i++) {
+        if (a[i].val == sm1||a[i].val==sm2) {
             a[i].val = lg;
         }
     }
 }
 map<int,int> findClusters(Node* a, int L) {
     int k = 2;
-    int LL = L * L;
+    int L3 = L * L*L;
     map<int, int> clusters;
-    for (int i = 0; i < LL; i++) {
+    for (int i = 0; i < L3; i++) {
         if (a[i].val) {
-            if (!a[i].nn[NN::TOPLEFT]->val && !a[i].nn[NN::TOP]->val && !a[i].nn[NN::LEFT]->val) {
+            if (!a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val && !a[i].nn[NN::_Z]->val) {
                 k++;
                 a[i].val = k;
                 clusters[k] = 1;
                 continue;
             }
-            if (a[i].nn[NN::TOPLEFT]->val) {
-                a[i].val = a[i].nn[NN::TOPLEFT]->val;
-                clusters[a[i].val]++;
-                continue;
-            }
-            if ((a[i].nn[NN::TOP]->val && !a[i].nn[NN::LEFT]->val) || (!a[i].nn[NN::TOP]->val && a[i].nn[NN::LEFT]->val)) {
-                if (a[i].nn[NN::TOP]->val) {
-                    a[i].val = a[i].nn[NN::TOP]->val;
+            if ((a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val&& !a[i].nn[NN::_Z]->val)
+                || (!a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val && !a[i].nn[NN::_Z]->val)
+                || (!a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val && a[i].nn[NN::_Z]->val) ) {
+                if (a[i].nn[NN::_X]->val) {
+                    a[i].val = a[i].nn[NN::_X]->val;
+                    clusters[a[i].val]++;
+                }
+                else if (a[i].nn[NN::_Y]->val) {
+                    a[i].val = a[i].nn[NN::_Y]->val;
                     clusters[a[i].val]++;
                 }
                 else {
-                    a[i].val = a[i].nn[NN::LEFT]->val;
+                    a[i].val = a[i].nn[NN::_Z]->val;
                     clusters[a[i].val]++;
                 }
                 continue;
             }
             
-            if (a[i].nn[NN::TOP]->val && a[i].nn[NN::LEFT]->val) {
-                if (a[i].nn[NN::TOP]->val == a[i].nn[NN::LEFT]->val) {
-                    a[i].val = a[i].nn[NN::LEFT]->val;
+            if (a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val&&a[i].nn[NN::_Z]->val) {
+                if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Y]->val&& a[i].nn[NN::_X]->val == a[i].nn[NN::_Z]->val) {
+                    a[i].val = a[i].nn[NN::_X]->val;
                     clusters[a[i].val]++;
                 }
                 else {
-                    int sm = 0;
+                    int sm1 = 0;
+                    int sm2 = 0;
                     int lg = 0;
-                    if (a[i].nn[NN::TOP]->val > a[i].nn[NN::LEFT]->val) {
-                        sm = a[i].nn[NN::LEFT]->val;
-                        lg = a[i].nn[NN::TOP]->val;
+                    if (a[i].nn[NN::_X]->val > a[i].nn[NN::_Y]->val) {
+                        if (a[i].nn[NN::_X]->val > a[i].nn[NN::_Z]->val) {
+                            sm1 = a[i].nn[NN::_Z]->val;
+                            sm2 = a[i].nn[NN::_Y]->val;
+                            lg = a[i].nn[NN::_X]->val;
+                        }
+                        else {
+                            sm1 = a[i].nn[NN::_X]->val;
+                            sm2 = a[i].nn[NN::_Y]->val;
+                            lg = a[i].nn[NN::_Z]->val;
+                        }
+                        
                     }
                     else {
-                        sm = a[i].nn[NN::TOP]->val;
-                        lg = a[i].nn[NN::LEFT]->val;
+                        if (a[i].nn[NN::_Y]->val > a[i].nn[NN::_Z]->val) {
+                            sm1 = a[i].nn[NN::_Z]->val;
+                            sm2 = a[i].nn[NN::_X]->val;
+                            lg = a[i].nn[NN::_Y]->val;
+                        }
+                        else {
+                            sm1 = a[i].nn[NN::_X]->val;
+                            sm2 = a[i].nn[NN::_Y]->val;
+                            lg = a[i].nn[NN::_Z]->val;
+                        }
                     }
                     a[i].val = lg;
-                    clusters[lg] += clusters[sm] + 1;
-                    clusters.erase(sm);
-                    unionClusters(a, L, sm, lg);
+                    clusters[lg] += clusters[sm1]+ clusters[sm2] + 1;
+                    clusters.erase(sm1);
+                    clusters.erase(sm2);
+                    unionClusters(a, L, sm1,sm2, lg);
                     
                 }
             }
@@ -149,8 +169,9 @@ map<int,int> findClusters(Node* a, int L) {
 
 bool checkPath(Node* a,int L) {
     //init burn side
-    int LL = L * L;
-    for (int i = 0; i < L; i++) {
+    int L3 = L * L*L;
+    int L2 = L * L;
+    for (int i = 0; i < L2; i++) {
         if (a[i].val) {
             a[i].val = 2;
         }
@@ -161,32 +182,30 @@ bool checkPath(Node* a,int L) {
     int burnLevel = 2;
     while (burnFlag) {
         burnFlag = false;
-        for (int i = 0; i < LL; i++) {
+        for (int i = 0; i < L3; i++) {
             if (a[i].val == burnLevel) {
                 burnFlag = true;
-                if (a[i].nn[NN::TOPLEFT]->val == 1) {
-                    a[i].nn[NN::TOPLEFT]->val = burnLevel + 1;
+                if (a[i].nn[NN::_X]->val == 1) {
+                    a[i].nn[NN::_X]->val = burnLevel + 1;
                 }
-                if (a[i].nn[NN::TOP]->val==1) {
-                    a[i].nn[NN::TOP]->val = burnLevel + 1;
+                if (a[i].nn[NN::X]->val==1) {
+                    a[i].nn[NN::X]->val = burnLevel + 1;
                 }
-                if (a[i].nn[NN::LEFT]->val==1) {
-                    a[i].nn[NN::LEFT]->val = burnLevel + 1;
+                if (a[i].nn[NN::_Y]->val==1) {
+                    a[i].nn[NN::_Y]->val = burnLevel + 1;
                 }
-                if (a[i].nn[NN::RIGHT]->val==1) {
-                    a[i].nn[NN::RIGHT]->val = burnLevel + 1;
-                }
-                if (a[i].nn[NN::BOTTOM]->val==1) {
-                    a[i].nn[NN::BOTTOM]->val = burnLevel + 1;
-                    if (i >= LL - (2 * L)) {
+                if (a[i].nn[NN::Y]->val==1) {
+                    a[i].nn[NN::Y]->val = burnLevel + 1;
+                    if (i >= L3 - (2*L2)) {
                         goto stop;
                     }
                 }
-                if (a[i].nn[NN::BOTTOMRIGHT]->val == 1) {
-                    a[i].nn[NN::BOTTOMRIGHT]->val = burnLevel + 1;
-                    if (i >= LL - (2 * L)) {
-                        goto stop;
-                    }
+                if (a[i].nn[NN::_Z]->val==1) {
+                    a[i].nn[NN::_Z]->val = burnLevel + 1;
+                }
+                if (a[i].nn[NN::Z]->val == 1) {
+                    a[i].nn[NN::Z]->val = burnLevel + 1;
+                    
                 }
             }
         }
@@ -211,72 +230,73 @@ int main(int argc, char **argv)
     auto params = getParams(string(argv[1]));
     printParams(params);
     const int L = params.L;
-    const int LL = L * L;
+    const int L2 = L*L;
+    const int L3 = L * L*L;
     const int T = params.T;
     const float p0 = params.p0;
     const float pk = params.pk;
     const float dp = params.dp;
 
     //lattice
-    Node* a = new Node [LL];
-    Node* b = new Node [LL];
+    Node* a = new Node [L3];
+    Node* b = new Node [L3];
     Node boundryNode = Node();
     boundryNode.val = 0;
     //nn init
-    for (int i = 0; i < LL; i++) {
-        //n0 i-L-1
-        if (i>= L&& i % L != 0) {
-            a[i].nn[NN::TOPLEFT] = &a[i - L-1];
-            b[i].nn[NN::TOPLEFT] = &b[i - L-1];
+    for (int i = 0; i < L3; i++) {
+        //n0 _X i-1
+        if ( i % L != 0) {
+            a[i].nn[NN::_X] = &a[i - 1];
+            b[i].nn[NN::_X] = &b[i - 1];
         }
         else {
-            a[i].nn[NN::TOPLEFT] = &boundryNode;
-            b[i].nn[NN::TOPLEFT] = &boundryNode;
+            a[i].nn[NN::_X] = &boundryNode;
+            b[i].nn[NN::_X] = &boundryNode;
         }
-        //n1 i-L
+        //n1 X i+1
+        if (i % L != L - 1) {
+            a[i].nn[NN::X] = &a[i + 1];
+            b[i].nn[NN::X] = &b[i + 1];
+        }
+        else {
+            a[i].nn[NN::X] = &boundryNode;
+            b[i].nn[NN::X] = &boundryNode;
+        }
+        //n2 _Y i-2*L
+        if (i>=L2) {
+            a[i].nn[NN::_Y] = &a[i - L2];
+            b[i].nn[NN::_Y] = &b[i - L2];
+        }
+        else {
+            a[i].nn[NN::_Y] = &boundryNode;
+            b[i].nn[NN::_Y] = &boundryNode;
+        }
+        //n3 Y i+2*L
+        if (i<L3-L2) {
+            a[i].nn[NN::Y] = &a[i + L2];
+            b[i].nn[NN::Y] = &b[i + L2];
+        }
+        else {
+            a[i].nn[NN::Y] = &boundryNode;
+            b[i].nn[NN::Y] = &boundryNode;
+        }
+        //n4 _Z i-L
         if (i >= L) {
-            a[i].nn[NN::TOP] = &a[i - L];
-            b[i].nn[NN::TOP] = &b[i - L];
+            a[i].nn[NN::_Z] = &a[i - L];
+            b[i].nn[NN::_Z] = &b[i - L];
         }
         else {
-            a[i].nn[NN::TOP] = &boundryNode;
-            b[i].nn[NN::TOP] = &boundryNode;
+            a[i].nn[NN::_Z] = &boundryNode;
+            b[i].nn[NN::_Z] = &boundryNode;
         }
-        //n2 i-1
-        if (i % L != 0) {
-            a[i].nn[NN::LEFT] = &a[i - 1];
-            b[i].nn[NN::LEFT] = &b[i - 1];
-        }
-        else {
-            a[i].nn[NN::LEFT] = &boundryNode;
-            b[i].nn[NN::LEFT] = &boundryNode;
-        }
-        //n3 i+1
-        if (i % L != L-1) {
-            a[i].nn[NN::RIGHT] = &a[i + 1];
-            b[i].nn[NN::RIGHT] = &b[i + 1];
+        //n5 Z i+L
+        if (i<L3-L) {
+            a[i].nn[NN::Z] = &a[i + L];
+            b[i].nn[NN::Z] = &b[i + L];
         }
         else {
-            a[i].nn[NN::RIGHT] = &boundryNode;
-            b[i].nn[NN::RIGHT] = &boundryNode;
-        }
-        //n4 i+L
-        if (i < LL-L) {
-            a[i].nn[NN::BOTTOM] = &a[i + L];
-            b[i].nn[NN::BOTTOM] = &b[i + L];
-        }
-        else {
-            a[i].nn[NN::BOTTOM] = &boundryNode;
-            b[i].nn[NN::BOTTOM] = &boundryNode;
-        }
-        //n5 i+L+1
-        if (i < LL - L&& i % L != L - 1) {
-            a[i].nn[NN::BOTTOMRIGHT] = &a[i + L+1];
-            b[i].nn[NN::BOTTOMRIGHT] = &b[i + L+1];
-        }
-        else {
-            a[i].nn[NN::BOTTOMRIGHT] = &boundryNode;
-            b[i].nn[NN::BOTTOMRIGHT] = &boundryNode;
+            a[i].nn[NN::Z] = &boundryNode;
+            b[i].nn[NN::Z] = &boundryNode;
         }
     }
 
@@ -303,7 +323,7 @@ int main(int argc, char **argv)
 
         for (int mcs = 0; mcs < T; mcs++) {
             //lattice loop
-            for (int i = 0; i < LL; i++) {
+            for (int i = 0; i < L3; i++) {
                 float rand = distribution(generator);
                 if (rand < p) {
                     a[i].val = 1;
