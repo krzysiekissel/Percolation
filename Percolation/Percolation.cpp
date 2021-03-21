@@ -287,10 +287,10 @@ int main(int argc, char **argv)
                 }
             }
             s += max;
-            bool path = checkPath(b, L);
+            /*bool path = checkPath(b, L);
             if (path) {
                 pflow += 1;
-            }
+            }*/
             //printConfig(a, L);
 
         }
@@ -299,15 +299,15 @@ int main(int argc, char **argv)
         }
         pflow = pflow / T;
         s = s / T;
-        /*string fileName = "Dist_p_" + to_string(p) + "_L_" + to_string(L)+"_T_"+to_string(T)+ "_tmstmp_" + to_string(time(nullptr)) + ".txt";
+        string fileName = "Dist_p_" + to_string(p) + "_L_" + to_string(L)+"_T_"+to_string(T)+ "_tmstmp_" + to_string(time(nullptr)) + ".txt";
         fstream clustersOutput;
         clustersOutput.open(fileName, ios::out);
         for (auto const& x : clustersDistibution) {
             cout << x.first << "\t" << x.second << endl;
             clustersOutput << x.first << "\t" << x.second << endl;
         }
-        clustersOutput.close();*/
-        cout << p << "\t" << pflow << "\t" << s << endl;
+        clustersOutput.close();
+        //cout << p << "\t" << pflow << "\t" << s << endl;
         //mainOutput << p << "\t"<<pflow<<"\t"<< s << endl;
         p += dp;
     }
