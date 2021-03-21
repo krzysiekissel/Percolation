@@ -297,9 +297,9 @@ int main(int argc, char **argv)
     float epsilon = 0.0003;
     while (p <= (pk+epsilon)) {
         //mc loop
-        float pflow = 0;
-        float s = 0;
-        map<int, float> clustersDistibution;
+        double pflow = 0;
+        double s = 0;
+        map<int, double> clustersDistibution;
 
         for (int mcs = 0; mcs < T; mcs++) {
             //lattice loop
@@ -332,19 +332,19 @@ int main(int argc, char **argv)
 
         }
         for (auto const& x : clustersDistibution) {
-            clustersDistibution[x.first] /= (float)T;
+            clustersDistibution[x.first] /= (double)T;
         }
         pflow = pflow / T;
         s = s / T;
-        /*string fileName = "Dist_p_" + to_string(p) + "_L_" + to_string(L)+"_T_"+to_string(T)+ "_tmstmp_" + to_string(time(nullptr)) + ".txt";
+        string fileName = "Dist_p_" + to_string(p) + "_L_" + to_string(L)+"_T_"+to_string(T)+ "_tmstmp_" + to_string(time(nullptr)) + ".txt";
         fstream clustersOutput;
         clustersOutput.open(fileName, ios::out);
         for (auto const& x : clustersDistibution) {
-            cout << x.first << "\t" << x.second << endl;
+            //cout << x.first << "\t" << x.second << endl;
             clustersOutput << x.first << "\t" << x.second << endl;
         }
-        clustersOutput.close();*/
-        cout << p << "\t" << pflow << "\t" << s << endl;
+        clustersOutput.close();
+        //cout << p << "\t" << pflow << "\t" << s << endl;
         //mainOutput << p << "\t"<<pflow<<"\t"<< s << endl;
         p += dp;
     }
