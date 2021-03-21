@@ -80,6 +80,14 @@ bool isOccupied(int** a,int L,int row,int col) {
     }
     return a[row][col] != 0;
 }
+void unionClusters(Node* a, int L, int sm, int lg) {
+    int L3 = L * L * L;
+    for (int i = 0; i < L3; i++) {
+        if (a[i].val == sm) {
+            a[i].val = lg;
+        }
+    }
+}
 void unionClusters(Node* a, int L, int sm1,int sm2, int lg) {
     int L3 = L * L*L;
     for (int i = 0; i < L3; i++) {
@@ -88,9 +96,9 @@ void unionClusters(Node* a, int L, int sm1,int sm2, int lg) {
         }
     }
 }
-map<int,int> findClusters(Node* a, int L) {
+map<int, int> findClusters(Node* a, int L) {
     int k = 2;
-    int L3 = L * L*L;
+    int L3 = L * L * L;
     map<int, int> clusters;
     for (int i = 0; i < L3; i++) {
         if (a[i].val) {
@@ -100,9 +108,9 @@ map<int,int> findClusters(Node* a, int L) {
                 clusters[k] = 1;
                 continue;
             }
-            if ((a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val&& !a[i].nn[NN::_Z]->val)
+            if ((a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val && !a[i].nn[NN::_Z]->val)
                 || (!a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val && !a[i].nn[NN::_Z]->val)
-                || (!a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val && a[i].nn[NN::_Z]->val) ) {
+                || (!a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val && a[i].nn[NN::_Z]->val)) {
                 if (a[i].nn[NN::_X]->val) {
                     a[i].val = a[i].nn[NN::_X]->val;
                     clusters[a[i].val]++;
@@ -117,11 +125,134 @@ map<int,int> findClusters(Node* a, int L) {
                 }
                 continue;
             }
-            
-            if (a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val&&a[i].nn[NN::_Z]->val) {
-                if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Y]->val&& a[i].nn[NN::_X]->val == a[i].nn[NN::_Z]->val) {
+            if ((a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val && !a[i].nn[NN::_Z]->val)
+                || (a[i].nn[NN::_X]->val && !a[i].nn[NN::_Y]->val && a[i].nn[NN::_Z]->val)
+                || (!a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val && a[i].nn[NN::_Z]->val))
+            {
+                if (a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val) {
+                    if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Y]->val) {
+                        a[i].val = a[i].nn[NN::_X]->val;
+                        clusters[a[i].val]++;
+                    }
+                    else {
+                        int sm = 0;
+                        int lg = 0;
+                        if (a[i].nn[NN::_X]->val > a[i].nn[NN::_Y]->val) {
+                            lg = a[i].nn[NN::_X]->val;
+                            sm = a[i].nn[NN::_Y]->val;
+                        }
+                        else {
+                            sm = a[i].nn[NN::_X]->val;
+                            lg = a[i].nn[NN::_Y]->val;
+                        }
+                        a[i].val = lg;
+                        clusters[lg] += clusters[sm] + 1;
+                        clusters.erase(sm);
+                        unionClusters(a, L, sm, lg);
+                    }
+                    continue;
+                }
+                if (a[i].nn[NN::_X]->val && a[i].nn[NN::_Z]->val) {
+                    if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Z]->val) {
+                        a[i].val = a[i].nn[NN::_X]->val;
+                        clusters[a[i].val]++;
+                    }
+                    else {
+                        int sm = 0;
+                        int lg = 0;
+                        if (a[i].nn[NN::_X]->val > a[i].nn[NN::_Z]->val) {
+                            lg = a[i].nn[NN::_X]->val;
+                            sm = a[i].nn[NN::_Z]->val;
+                        }
+                        else {
+                            sm = a[i].nn[NN::_X]->val;
+                            lg = a[i].nn[NN::_Z]->val;
+                        }
+                        a[i].val = lg;
+                        clusters[lg] += clusters[sm] + 1;
+                        clusters.erase(sm);
+                        unionClusters(a, L, sm, lg);
+                    }
+                    continue;
+                }
+                if (a[i].nn[NN::_Z]->val && a[i].nn[NN::_Y]->val) {
+                    if (a[i].nn[NN::_Z]->val == a[i].nn[NN::_Y]->val) {
+                        a[i].val = a[i].nn[NN::_Z]->val;
+                        clusters[a[i].val]++;
+                    }
+                    else {
+                        int sm = 0;
+                        int lg = 0;
+                        if (a[i].nn[NN::_Z]->val > a[i].nn[NN::_Y]->val) {
+                            lg = a[i].nn[NN::_Z]->val;
+                            sm = a[i].nn[NN::_Y]->val;
+                        }
+                        else {
+                            sm = a[i].nn[NN::_Z]->val;
+                            lg = a[i].nn[NN::_Y]->val;
+                        }
+                        a[i].val = lg;
+                        clusters[lg] += clusters[sm] + 1;
+                        clusters.erase(sm);
+                        unionClusters(a, L, sm, lg);
+                    }
+                }
+            }
+
+            if (a[i].nn[NN::_X]->val && a[i].nn[NN::_Y]->val && a[i].nn[NN::_Z]->val) {
+                if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Y]->val && a[i].nn[NN::_X]->val == a[i].nn[NN::_Z]->val && a[i].nn[NN::_Y]->val == a[i].nn[NN::_Z]->val) {
                     a[i].val = a[i].nn[NN::_X]->val;
                     clusters[a[i].val]++;
+                }
+                else if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Y]->val) {
+                    int sm = 0;
+                    int lg = 0;
+                    if (a[i].nn[NN::_X]->val > a[i].nn[NN::_Z]->val) {
+                        lg = a[i].nn[NN::_X]->val;
+                        sm = a[i].nn[NN::_Z]->val;
+                    }
+                    else {
+                        sm = a[i].nn[NN::_X]->val;
+                        lg = a[i].nn[NN::_Z]->val;
+                    }
+                    a[i].val = lg;
+                    clusters[lg] += clusters[sm] + 1;
+                    clusters.erase(sm);
+                    unionClusters(a, L, sm, lg);
+
+                }
+                else if (a[i].nn[NN::_X]->val == a[i].nn[NN::_Z]->val) {
+                    int sm = 0;
+                    int lg = 0;
+                    if (a[i].nn[NN::_X]->val > a[i].nn[NN::_Y]->val) {
+                        lg = a[i].nn[NN::_X]->val;
+                        sm = a[i].nn[NN::_Y]->val;
+                    }
+                    else {
+                        sm = a[i].nn[NN::_X]->val;
+                        lg = a[i].nn[NN::_Y]->val;
+                    }
+                    a[i].val = lg;
+                    clusters[lg] += clusters[sm] + 1;
+                    clusters.erase(sm);
+                    unionClusters(a, L, sm, lg);
+                }
+                else if (a[i].nn[NN::_Y]->val == a[i].nn[NN::_Z]->val)
+                {
+                    int sm = 0;
+                    int lg = 0;
+                    if (a[i].nn[NN::_Y]->val > a[i].nn[NN::_X]->val) {
+                        lg = a[i].nn[NN::_Y]->val;
+                        sm = a[i].nn[NN::_X]->val;
+                    }
+                    else {
+                        sm = a[i].nn[NN::_Y]->val;
+                        lg = a[i].nn[NN::_X]->val;
+                    }
+                    a[i].val = lg;
+                    clusters[lg] += clusters[sm] + 1;
+                    clusters.erase(sm);
+                    unionClusters(a, L, sm, lg);
                 }
                 else {
                     int sm1 = 0;
@@ -138,7 +269,7 @@ map<int,int> findClusters(Node* a, int L) {
                             sm2 = a[i].nn[NN::_Y]->val;
                             lg = a[i].nn[NN::_Z]->val;
                         }
-                        
+
                     }
                     else {
                         if (a[i].nn[NN::_Y]->val > a[i].nn[NN::_Z]->val) {
@@ -153,14 +284,14 @@ map<int,int> findClusters(Node* a, int L) {
                         }
                     }
                     a[i].val = lg;
-                    clusters[lg] += clusters[sm1]+ clusters[sm2] + 1;
+                    clusters[lg] += clusters[sm1] + clusters[sm2] + 1;
                     clusters.erase(sm1);
                     clusters.erase(sm2);
-                    unionClusters(a, L, sm1,sm2, lg);
-                    
+                    unionClusters(a, L, sm1, sm2, lg);
+
                 }
             }
-            
+
         }
     }
     return clusters;
